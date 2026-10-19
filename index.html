@@ -10,34 +10,33 @@
 </head>
 <body>
   <main class="app">
+    <div id="viewerScreen" class="viewer-screen">
     <header class="intro">
-      <span class="eyebrow">VISUALIZADOR</span>
-      <h1>Encontre um andar</h1>
-      <p>Escolha um andar para destacar e ampliar essa parte da prateleira.</p>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="appSidebar" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="intro-copy">
+        <span class="eyebrow">VISUALIZADOR</span>
+        <h1>Encontre um andar</h1>
+        <p>Escolha um andar para destacar e ampliar essa parte da prateleira.</p>
+      </div>
     </header>
 
     <section class="workspace" aria-label="Visualizador da prateleira">
-      <aside class="sidebar">
+      <aside class="sidebar" id="appSidebar" aria-label="Menu lateral">
         <section class="shelf-manager" aria-labelledby="shelfTitle">
-          <span class="section-kicker">BIBLIOTECA LOCAL</span>
-          <h2 id="shelfTitle">Prateleiras</h2>
-          <label class="visually-hidden" for="shelfSelect">Prateleira selecionada</label>
+          <span class="section-kicker">MENU</span><span>   </span>
+          <button class="shelf-menu-button" id="openShelfFormButton" type="button" aria-controls="registerScreen">+ Cadastrar prateleira</button>
+        </section>
+      </aside>
+
+      <section class="control-panel" aria-label="Controles da prateleira">
+        <div class="shelf-picker">
+          <label for="shelfSelect">Prateleira selecionada</label>
           <select class="shelf-select" id="shelfSelect">
             <option value="principal">Prateleira principal</option>
           </select>
-          <details class="shelf-add">
-            <summary>Adicionar outra prateleira</summary>
-            <form id="shelfForm" class="shelf-form">
-              <label for="shelfName">Nome da prateleira</label>
-              <input id="shelfName" name="name" type="text" maxlength="60" placeholder="Ex.: Estoque A" required>
-              <label for="shelfPhoto">Foto da prateleira</label>
-              <button id="cameraButton" class="camera-button" type="button">Tirar foto com a câmera</button>
-              <input id="shelfPhoto" name="photo" type="file" accept="image/*" capture="environment" required>
-              <button id="saveShelfButton" type="submit">Salvar prateleira</button>
-              <p class="shelf-note" id="shelfNote">A foto será ajustada às dimensões da prateleira principal, mantendo a imagem inteira.</p>
-            </form>
-          </details>
-        </section>
+        </div>
         <div class="sidebar-heading">
           <span class="section-kicker">NAVEGAÇÃO</span>
           <h2>Andares</h2>
@@ -62,7 +61,7 @@
           <ul class="item-list" id="itemList" aria-live="polite"></ul>
           <p class="info-hint" id="infoHint">Selecione um andar para gerenciar os itens.</p>
         </section>
-      </aside>
+      </section>
 
       <div class="viewer-card">
         <div class="viewer-topline"><div><span class="section-kicker">VISUALIZAÇÃO</span><h2 id="viewerTitle">Prateleira completa</h2></div><span class="zoom-badge" id="zoomBadge">VISTA GERAL</span></div>
@@ -76,7 +75,31 @@
         <div class="viewer-footer"><span class="status" id="status" aria-live="polite">Exibindo a prateleira completa.</span><span class="image-hint">A imagem acompanha o andar selecionado</span></div>
       </div>
     </section>
+    <button class="menu-backdrop" id="menuBackdrop" type="button" aria-label="Fechar menu" hidden></button>
     <footer>Use o seletor para alternar entre os seis andares.</footer>
+    </div>
+    <section id="registerScreen" class="register-screen" aria-labelledby="registerTitle" hidden>
+      <header class="register-header">
+        <button class="back-button" id="backToViewerButton" type="button">← Voltar ao visualizador</button>
+        <span class="section-kicker">BIBLIOTECA LOCAL</span>
+        <h1 id="registerTitle">Cadastrar prateleira</h1>
+        <p>Adicione um nome e uma foto. Você poderá alinhar a imagem ao modelo antes de salvar.</p>
+      </header>
+      <div class="register-card">
+        <form id="shelfForm" class="shelf-form">
+          <label for="shelfName">Nome da prateleira</label>
+          <input id="shelfName" name="name" type="text" maxlength="60" placeholder="Ex.: Estoque A" required>
+          <label for="shelfPhoto">Foto da prateleira</label>
+          <button id="cameraButton" class="camera-button" type="button">Tirar foto com a câmera</button>
+          <input id="shelfPhoto" name="photo" type="file" accept="image/*" capture="environment" required>
+          <p class="shelf-note" id="shelfNote">A foto será ajustada às dimensões da prateleira principal, mantendo a imagem inteira.</p>
+          <div class="shelf-form-actions">
+            <button id="cancelRegistrationButton" type="button">Cancelar cadastro</button>
+            <button id="saveShelfButton" type="submit">Salvar prateleira</button>
+          </div>
+        </form>
+      </div>
+    </section>
   </main>
   <dialog class="camera-dialog" id="cameraDialog" aria-labelledby="cameraTitle">
     <div class="camera-header">

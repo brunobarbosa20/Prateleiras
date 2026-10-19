@@ -15,6 +15,13 @@ const itemList = document.getElementById("itemList");
 const infoHint = document.getElementById("infoHint");
 const shelfSelect = document.getElementById("shelfSelect");
 const shelfForm = document.getElementById("shelfForm");
+const openShelfFormButton = document.getElementById("openShelfFormButton");
+const backToViewerButton = document.getElementById("backToViewerButton");
+const cancelRegistrationButton = document.getElementById("cancelRegistrationButton");
+const viewerScreen = document.getElementById("viewerScreen");
+const registerScreen = document.getElementById("registerScreen");
+const menuToggle = document.getElementById("menuToggle");
+const menuBackdrop = document.getElementById("menuBackdrop");
 const shelfNameInput = document.getElementById("shelfName");
 const shelfPhotoInput = document.getElementById("shelfPhoto");
 const cameraButton = document.getElementById("cameraButton");
@@ -115,21 +122,34 @@ const andares = {
 const TOTAL_ANDARES = Object.keys(andares).length;
 const ZOOM = 2.15;
 
-function carregarPrateleiras() {
+async function carregarPrateleiras() {
+  let falhaServidor = false;
   try {
-    const salvas = JSON.parse(localStorage.getItem(CHAVE_PRATELEIRAS) || "[]");
-    salvas.forEach((salva) => {
-      if (salva?.id && salva?.nome && typeof salva.foto === "string") prateleiras.push(salva);
+    const resposta = await fetch("api.php", { headers: { Accept: "application/json" } });
+    const resultado = await resposta.json();
+    if (!resposta.ok) throw new Error(resultado.error || "Não foi possível consultar o banco de dados.");
+    (Array.isArray(resultado.shelves) ? resultado.shelves : []).forEach((salva) => {
+      if (salva?.id && salva?.nome && salva?.foto && !prateleiras.some((item) => item.id === salva.id)) {
+        prateleiras.push(salva);
+      }
     });
-  } catch {
-    shelfNote.textContent = "Não foi possível ler as prateleiras salvas neste navegador.";
+  } catch (erro) {
+    falhaServidor = true;
+    shelfNote.textContent = `Banco de dados indisponível: ${erro.message}. Abra o projeto pelo XAMPP.`;
   }
-  atualizarSeletorPrateleiras();
-}
 
-function guardarPrateleiras() {
-  const salvas = prateleiras.filter((item) => item.id !== PRINCIPAL_ID);
-  localStorage.setItem(CHAVE_PRATELEIRAS, JSON.stringify(salvas));
+  // Mantém acessíveis as prateleiras legadas que estavam salvas neste navegador.
+  try {
+    const locais = JSON.parse(localStorage.getItem(CHAVE_PRATELEIRAS) || "[]");
+    locais.forEach((salva) => {
+      if (salva?.id && salva?.nome && typeof salva.foto === "string" && !prateleiras.some((item) => item.id === salva.id)) {
+        prateleiras.push(salva);
+      }
+    });
+  } catch { /* Ignora dados antigos inválidos do navegador. */ }
+
+  atualizarSeletorPrateleiras();
+  if (falhaServidor) status.classList.add("erro");
 }
 
 async function cadastrarPrateleira(nome, arquivoFoto) {
@@ -140,21 +160,15 @@ async function cadastrarPrateleira(nome, arquivoFoto) {
   }
 
   const foto = await normalizarFoto(arquivoFoto);
-  const novaPrateleira = {
-    id: `prateleira-${crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)}`,
-    nome: nomeLimpo,
-    foto
-  };
+  const dados = new FormData();
+  dados.append("name", nomeLimpo);
+  dados.append("photo", foto, "prateleira.jpg");
+  const resposta = await fetch("api.php", { method: "POST", body: dados, headers: { Accept: "application/json" } });
+  const resultado = await resposta.json();
+  if (!resposta.ok) throw new Error(resultado.error || "Não foi possível salvar a prateleira no banco de dados.");
+
+  const novaPrateleira = { id: resultado.shelf.id, nome: resultado.shelf.nome, foto: resultado.shelf.foto };
   prateleiras.push(novaPrateleira);
-  try {
-    guardarPrateleiras();
-  } catch (erro) {
-    prateleiras.pop();
-    if (erro.name === "QuotaExceededError") {
-      throw new Error("O localStorage está cheio. Tente uma foto com menos detalhes.");
-    }
-    throw new Error("O navegador bloqueou o acesso ao localStorage desta página.");
-  }
   atualizarSeletorPrateleiras();
   selecionarPrateleira(novaPrateleira.id);
   return novaPrateleira;
@@ -340,7 +354,10 @@ async function normalizarFoto(arquivo) {
   contexto.drawImage(bitmap, (largura - larguraFoto) / 2, (altura - alturaFoto) / 2, larguraFoto, alturaFoto);
   bitmap.close();
 
-  return canvas.toDataURL("image/jpeg", 0.72);
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("Não foi possível gerar a foto ajustada.")), "image/jpeg", 0.82);
+  });
+  return new File([blob], "prateleira.jpg", { type: "image/jpeg" });
 }
 
 function zoomPorId(id) {
@@ -411,7 +428,50 @@ function zoomPorId(id) {
 window.zoomPorId = zoomPorId;
 window.cadastrarPrateleira = cadastrarPrateleira;
 
-shelfSelect.addEventListener("change", () => selecionarPrateleira(shelfSelect.value));
+function fecharMenuLateral() {
+  document.body.classList.remove("menu-open");
+  menuBackdrop.hidden = true;
+  menuToggle.setAttribute("aria-expanded", "false");
+  menuToggle.setAttribute("aria-label", "Abrir menu");
+}
+
+menuToggle.addEventListener("click", () => {
+  const aberto = document.body.classList.toggle("menu-open");
+  menuBackdrop.hidden = !aberto;
+  menuToggle.setAttribute("aria-expanded", String(aberto));
+  menuToggle.setAttribute("aria-label", aberto ? "Fechar menu" : "Abrir menu");
+});
+menuBackdrop.addEventListener("click", fecharMenuLateral);
+document.addEventListener("keydown", (evento) => {
+  if (evento.key === "Escape") fecharMenuLateral();
+});
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 620) fecharMenuLateral();
+});
+
+shelfSelect.addEventListener("change", () => {
+  selecionarPrateleira(shelfSelect.value);
+  fecharMenuLateral();
+});
+openShelfFormButton.addEventListener("click", () => {
+  fecharMenuLateral();
+  viewerScreen.hidden = true;
+  registerScreen.hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  shelfNameInput.focus();
+});
+backToViewerButton.addEventListener("click", () => {
+  registerScreen.hidden = true;
+  viewerScreen.hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+cancelRegistrationButton.addEventListener("click", () => {
+  shelfForm.reset();
+  fotoPronta = false;
+  registerScreen.hidden = true;
+  viewerScreen.hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 
 cameraButton.addEventListener("click", () => {
   abrirCamera();
@@ -459,18 +519,20 @@ shelfForm.addEventListener("submit", async (evento) => {
   }
 
   saveShelfButton.disabled = true;
-  shelfNote.textContent = "Conferindo e salvando a foto neste navegador…";
-  status.textContent = "Preparando e salvando a foto localmente…";
+  shelfNote.textContent = "Preparando e enviando a foto para o servidor…";
+  status.textContent = "Salvando a prateleira no banco de dados…";
   status.classList.remove("erro");
   try {
     await cadastrarPrateleira(nome, foto);
     shelfForm.reset();
     fotoPronta = false;
-    shelfForm.closest("details").open = false;
-    shelfNote.textContent = "Foto salva localmente neste navegador.";
-    status.textContent = `Prateleira “${nome}” salva e selecionada.`;
+    shelfNote.textContent = "Prateleira e foto salvas no banco de dados.";
+    status.textContent = `Prateleira “${nome}” salva no servidor e selecionada.`;
+    registerScreen.hidden = true;
+    viewerScreen.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (erro) {
-    shelfNote.textContent = erro.message || "Não foi possível salvar a foto neste navegador.";
+    shelfNote.textContent = erro.message || "Não foi possível salvar a foto no banco de dados.";
     status.textContent = `Falha ao salvar: ${shelfNote.textContent}`;
     status.classList.add("erro");
   } finally {
@@ -482,7 +544,10 @@ carregarPrateleiras();
 
 floorButtons.forEach((botao) => {
   botao.setAttribute("aria-pressed", "false");
-  botao.addEventListener("click", () => zoomPorId(botao.dataset.floor));
+  botao.addEventListener("click", () => {
+    zoomPorId(botao.dataset.floor);
+    fecharMenuLateral();
+  });
 });
 
 itemForm.addEventListener("submit", (evento) => {
@@ -504,6 +569,7 @@ itemForm.addEventListener("submit", (evento) => {
 
 resetButton.addEventListener("click", () => {
   zoomPorId("");
+  fecharMenuLateral();
   floorButtons[0]?.focus();
 });
 

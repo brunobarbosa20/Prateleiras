@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f8">
+  <title>Visualizador de prateleira</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="intro">
+      <span class="eyebrow">VISUALIZADOR</span>
+      <h1>Encontre um andar</h1>
+      <p>Escolha um andar para destacar e ampliar essa parte da prateleira.</p>
+    </header>
+
+    <section class="workspace" aria-label="Visualizador da prateleira">
+      <aside class="sidebar">
+        <section class="shelf-manager" aria-labelledby="shelfTitle">
+          <span class="section-kicker">BIBLIOTECA LOCAL</span>
+          <h2 id="shelfTitle">Prateleiras</h2>
+          <label class="visually-hidden" for="shelfSelect">Prateleira selecionada</label>
+          <select class="shelf-select" id="shelfSelect">
+            <option value="principal">Prateleira principal</option>
+          </select>
+          <details class="shelf-add">
+            <summary>Adicionar outra prateleira</summary>
+            <form id="shelfForm" class="shelf-form">
+              <label for="shelfName">Nome da prateleira</label>
+              <input id="shelfName" name="name" type="text" maxlength="60" placeholder="Ex.: Estoque A" required>
+              <label for="shelfPhoto">Foto da prateleira</label>
+              <button id="cameraButton" class="camera-button" type="button">Tirar foto com a câmera</button>
+              <input id="shelfPhoto" name="photo" type="file" accept="image/*" capture="environment" required>
+              <button id="saveShelfButton" type="submit">Salvar prateleira</button>
+              <p class="shelf-note" id="shelfNote">A foto será ajustada às dimensões da prateleira principal, mantendo a imagem inteira.</p>
+            </form>
+          </details>
+        </section>
+        <div class="sidebar-heading">
+          <span class="section-kicker">NAVEGAÇÃO</span>
+          <h2>Andares</h2>
+          <p>Escolha um andar para ver os itens e ampliar a foto.</p>
+        </div>
+        <button class="full-view-button" id="resetButton" type="button" aria-pressed="true" disabled>Ver prateleira toda</button>
+        <nav class="floor-nav" id="floorNav" aria-label="Selecionar andar">
+          <button class="floor-button" type="button" data-floor="andar-6"><span class="floor-number">06</span><span class="floor-name">Andar 6</span><span class="floor-position">Superior</span></button>
+          <button class="floor-button" type="button" data-floor="andar-5"><span class="floor-number">05</span><span class="floor-name">Andar 5</span></button>
+          <button class="floor-button" type="button" data-floor="andar-4"><span class="floor-number">04</span><span class="floor-name">Andar 4</span></button>
+          <button class="floor-button" type="button" data-floor="andar-3"><span class="floor-number">03</span><span class="floor-name">Andar 3</span></button>
+          <button class="floor-button" type="button" data-floor="andar-2"><span class="floor-number">02</span><span class="floor-name">Andar 2</span></button>
+          <button class="floor-button" type="button" data-floor="andar-1"><span class="floor-number">01</span><span class="floor-name">Andar 1</span><span class="floor-position">Inferior</span></button>
+        </nav>
+        <section class="info-editor" aria-labelledby="itemsTitle">
+          <div class="items-heading"><div><span class="section-kicker">ORGANIZAÇÃO</span><h2 id="itemsTitle">Itens do andar</h2></div><span class="item-count" id="itemCount">—</span></div>
+          <form class="item-form" id="itemForm">
+            <label class="visually-hidden" for="itemInput">Nome do item</label>
+            <input id="itemInput" type="text" maxlength="200" placeholder="Selecione um andar primeiro" disabled>
+            <button id="addItemButton" type="submit" disabled aria-label="Adicionar item">+</button>
+          </form>
+          <ul class="item-list" id="itemList" aria-live="polite"></ul>
+          <p class="info-hint" id="infoHint">Selecione um andar para gerenciar os itens.</p>
+        </section>
+      </aside>
+
+      <div class="viewer-card">
+        <div class="viewer-topline"><div><span class="section-kicker">VISUALIZAÇÃO</span><h2 id="viewerTitle">Prateleira completa</h2></div><span class="zoom-badge" id="zoomBadge">VISTA GERAL</span></div>
+        <div class="stage" id="prateleira" aria-label="Imagem da prateleira">
+          <div class="scene" id="scene">
+            <img src="prateleira.jpg" id="imagemPrateleira" alt="Prateleira com seis andares" draggable="false">
+            <div class="marcacao" id="marcacao" aria-hidden="true"></div>
+          </div>
+          <div class="empty-state" id="emptyState">Selecione um andar no menu para ampliar</div>
+        </div>
+        <div class="viewer-footer"><span class="status" id="status" aria-live="polite">Exibindo a prateleira completa.</span><span class="image-hint">A imagem acompanha o andar selecionado</span></div>
+      </div>
+    </section>
+    <footer>Use o seletor para alternar entre os seis andares.</footer>
+  </main>
+</body>
+</html>

@@ -83,9 +83,19 @@
       <div><span class="section-kicker">ENQUADRAMENTO</span><h2 id="cameraTitle">Alinhe a prateleira</h2></div>
       <button id="closeCameraButton" class="camera-close" type="button" aria-label="Fechar câmera">×</button>
     </div>
-    <p class="camera-instruction">Enquadre a prateleira inteira e tire a foto. Você poderá ajustar a imagem na próxima etapa.</p>
+    <p class="camera-instruction">Alinhe os andares ao modelo verde sobreposto e tire a foto. Você poderá ajustar a imagem na próxima etapa.</p>
     <div class="camera-viewport">
       <video id="cameraVideo" autoplay muted playsinline></video>
+      <svg class="shelf-model" viewBox="0 0 1152 1536" aria-hidden="true">
+        <g class="model-shadow">
+          <rect x="34" y="28" width="1084" height="1480" />
+          <path d="M34 250H1118 M34 496H1118 M34 742H1118 M34 988H1118 M34 1234H1118 M576 28V1508" />
+        </g>
+        <g class="model-lines">
+          <rect x="34" y="28" width="1084" height="1480" />
+          <path d="M34 250H1118 M34 496H1118 M34 742H1118 M34 988H1118 M34 1234H1118 M576 28V1508" />
+        </g>
+      </svg>
     </div>
     <p class="camera-error" id="cameraError" role="status"></p>
     <div class="camera-actions">

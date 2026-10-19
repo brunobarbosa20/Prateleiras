@@ -78,5 +78,24 @@
     </section>
     <footer>Use o seletor para alternar entre os seis andares.</footer>
   </main>
+  <dialog class="camera-dialog" id="cameraDialog" aria-labelledby="cameraTitle">
+    <div class="camera-header">
+      <div><span class="section-kicker">ENQUADRAMENTO</span><h2 id="cameraTitle">Alinhe a prateleira</h2></div>
+      <button id="closeCameraButton" class="camera-close" type="button" aria-label="Fechar câmera">×</button>
+    </div>
+    <p class="camera-instruction">Posicione a prateleira sobre o contorno. A imagem transparente serve como referência.</p>
+    <div class="camera-viewport">
+      <video id="cameraVideo" autoplay muted playsinline></video>
+      <div class="camera-guide" aria-hidden="true">
+        <img src="prateleira.jpg" alt="">
+        <div class="shelf-outline"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <p class="camera-error" id="cameraError" role="status"></p>
+    <div class="camera-actions">
+      <button id="cancelCameraButton" type="button">Cancelar</button>
+      <button id="takePhotoButton" type="button" disabled>Tirar foto</button>
+    </div>
+  </dialog>
 </body>
 </html>

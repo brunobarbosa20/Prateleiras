@@ -18,6 +18,10 @@ const shelfForm = document.getElementById("shelfForm");
 const shelfNameInput = document.getElementById("shelfName");
 const shelfPhotoInput = document.getElementById("shelfPhoto");
 const cameraButton = document.getElementById("cameraButton");
+const cameraDialog = document.getElementById("cameraDialog");
+const cameraVideo = document.getElementById("cameraVideo");
+const cameraError = document.getElementById("cameraError");
+const takePhotoButton = document.getElementById("takePhotoButton");
 const saveShelfButton = document.getElementById("saveShelfButton");
 const shelfNote = document.getElementById("shelfNote");
 const CHAVE_INFO = "prateleira-informacoes-andares";
@@ -157,6 +161,60 @@ function atualizarSeletorPrateleiras() {
   shelfSelect.value = prateleiraAtual;
 }
 
+function fecharCamera() {
+  cameraVideo.srcObject?.getTracks().forEach((track) => track.stop());
+  cameraVideo.srcObject = null;
+  takePhotoButton.disabled = true;
+  if (cameraDialog.open) cameraDialog.close();
+}
+
+async function abrirCameraComGuia() {
+  cameraError.textContent = "";
+  if (!navigator.mediaDevices?.getUserMedia) {
+    shelfNote.textContent = "A câmera com guia precisa de uma conexão segura. Abrindo o seletor de fotos do celular.";
+    shelfPhotoInput.click();
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: "environment" }, aspectRatio: { ideal: 3 / 4 } }
+    });
+    cameraVideo.srcObject = stream;
+    cameraDialog.showModal();
+    await cameraVideo.play();
+  } catch {
+    fecharCamera();
+    cameraError.textContent = "Não foi possível abrir a câmera. Verifique a permissão do navegador.";
+    shelfNote.textContent = "Câmera indisponível ou sem permissão. Abrindo o seletor de fotos do celular.";
+    shelfPhotoInput.click();
+  }
+}
+
+function tirarFotoComGuia() {
+  if (!cameraVideo.videoWidth || !cameraVideo.videoHeight) return;
+  takePhotoButton.disabled = true;
+  const canvas = document.createElement("canvas");
+  canvas.width = cameraVideo.videoWidth;
+  canvas.height = cameraVideo.videoHeight;
+  canvas.getContext("2d").drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+  canvas.toBlob((blob) => {
+    if (!blob) {
+      cameraError.textContent = "Não foi possível capturar a foto. Tente novamente.";
+      takePhotoButton.disabled = false;
+      return;
+    }
+    const arquivo = new File([blob], "foto-prateleira.jpg", { type: "image/jpeg" });
+    const transferencia = new DataTransfer();
+    transferencia.items.add(arquivo);
+    shelfPhotoInput.files = transferencia.files;
+    shelfNote.textContent = "Foto capturada. Agora salve a prateleira.";
+    status.textContent = "Foto capturada com o contorno de enquadramento.";
+    fecharCamera();
+  }, "image/jpeg", 0.9);
+}
+
 function selecionarPrateleira(id) {
   const prateleira = prateleiras.find((item) => item.id === id);
   if (!prateleira) return;
@@ -276,8 +334,15 @@ window.cadastrarPrateleira = cadastrarPrateleira;
 shelfSelect.addEventListener("change", () => selecionarPrateleira(shelfSelect.value));
 
 cameraButton.addEventListener("click", () => {
-  shelfPhotoInput.setAttribute("capture", "environment");
-  shelfPhotoInput.click();
+  abrirCameraComGuia();
+});
+cameraVideo.addEventListener("loadedmetadata", () => { takePhotoButton.disabled = false; });
+takePhotoButton.addEventListener("click", tirarFotoComGuia);
+document.getElementById("cancelCameraButton").addEventListener("click", fecharCamera);
+document.getElementById("closeCameraButton").addEventListener("click", fecharCamera);
+cameraDialog.addEventListener("cancel", (evento) => {
+  evento.preventDefault();
+  fecharCamera();
 });
 
 shelfForm.addEventListener("submit", async (evento) => {

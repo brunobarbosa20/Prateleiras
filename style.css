@@ -38,10 +38,12 @@ h1 { margin: 7px 0 4px; font-size: clamp(1.8rem, 3vw, 2.35rem); letter-spacing: 
 .photo-editor-preview { position: relative; width: min(100%, 390px); aspect-ratio: 3 / 4; max-height: 52vh; margin: 0 auto; overflow: hidden; border: 1px solid #dce5e1; border-radius: 12px; background: #eef2f0; }
 .photo-editor-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .photo-editor-preview #editorPhoto { z-index: 1; transform-origin: center; }
-.photo-editor-preview .editor-reference { z-index: 2; opacity: .2; pointer-events: none; }
-.editor-outline { position: absolute; z-index: 3; inset: 0; display: flex; flex-direction: column; border: 2px solid #14a67a; box-shadow: inset 0 0 0 1px #fff9; pointer-events: none; }
-.editor-outline i { flex: 1; border-bottom: 1px dashed #14a67a; }
-.editor-outline i:last-child { border-bottom: 0; }
+.shelf-model { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.shelf-model g { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.shelf-model .model-shadow { stroke: #10261f; stroke-width: 24; opacity: .75; }
+.shelf-model .model-lines { stroke: #72ffd0; stroke-width: 8; stroke-dasharray: 30 14; }
+.model-legend { display: flex; align-items: center; gap: 7px; margin: 10px 0 0; color: #718078; font-size: .73rem; }
+.model-legend span { width: 17px; height: 3px; border-radius: 2px; background: #19b987; box-shadow: 0 0 0 2px #19b98735; }
 .editor-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
 .editor-controls label { display: grid; gap: 5px; color: #52625b; font-size: .75rem; font-weight: 700; }
 .editor-controls output { color: #16836b; }

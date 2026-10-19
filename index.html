@@ -98,17 +98,26 @@
       <div><span class="section-kicker">EDIÇÃO DA FOTO</span><h2 id="photoEditorTitle">Ajuste pela prateleira modelo</h2></div>
       <button id="closeEditorButton" class="camera-close" type="button" aria-label="Fechar editor">×</button>
     </div>
-    <p class="camera-instruction">Alinhe a foto à referência. Ajuste o zoom e a posição antes de usar.</p>
+    <p class="camera-instruction">Use o modelo virtual de seis andares para alinhar a foto. Ajuste zoom e posição antes de usar.</p>
     <div class="photo-editor-preview">
       <img id="editorPhoto" alt="Prévia da foto selecionada">
-      <img class="editor-reference" src="prateleira.jpg" alt="Referência da prateleira principal">
-      <div class="editor-outline" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <svg class="shelf-model" viewBox="0 0 1152 1536" role="img" aria-label="Modelo virtual com estrutura e seis andares">
+        <g class="model-shadow">
+          <rect x="34" y="28" width="1084" height="1480" />
+          <path d="M34 250H1118 M34 496H1118 M34 742H1118 M34 988H1118 M34 1234H1118 M576 28V1508" />
+        </g>
+        <g class="model-lines">
+          <rect x="34" y="28" width="1084" height="1480" />
+          <path d="M34 250H1118 M34 496H1118 M34 742H1118 M34 988H1118 M34 1234H1118 M576 28V1508" />
+        </g>
+      </svg>
     </div>
     <div class="editor-controls">
       <label for="photoZoom">Zoom <output id="photoZoomValue">1.0×</output><input id="photoZoom" type="range" min="1" max="2" step="0.05" value="1"></label>
       <label for="photoOffsetX">Posição horizontal<input id="photoOffsetX" type="range" min="-25" max="25" step="1" value="0"></label>
       <label for="photoOffsetY">Posição vertical<input id="photoOffsetY" type="range" min="-25" max="25" step="1" value="0"></label>
     </div>
+    <p class="model-legend"><span></span> Modelo virtual · 6 andares · 1152 × 1536 px</p>
     <p class="camera-error" id="editorError" role="status"></p>
     <div class="camera-actions">
       <button id="cancelEditorButton" type="button">Cancelar</button>

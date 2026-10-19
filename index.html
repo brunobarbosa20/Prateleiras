@@ -83,18 +83,36 @@
       <div><span class="section-kicker">ENQUADRAMENTO</span><h2 id="cameraTitle">Alinhe a prateleira</h2></div>
       <button id="closeCameraButton" class="camera-close" type="button" aria-label="Fechar câmera">×</button>
     </div>
-    <p class="camera-instruction">Posicione a prateleira sobre o contorno. A imagem transparente serve como referência.</p>
+    <p class="camera-instruction">Enquadre a prateleira inteira e tire a foto. Você poderá ajustar a imagem na próxima etapa.</p>
     <div class="camera-viewport">
       <video id="cameraVideo" autoplay muted playsinline></video>
-      <div class="camera-guide" aria-hidden="true">
-        <img src="prateleira.jpg" alt="">
-        <div class="shelf-outline"><i></i><i></i><i></i><i></i><i></i></div>
-      </div>
     </div>
     <p class="camera-error" id="cameraError" role="status"></p>
     <div class="camera-actions">
       <button id="cancelCameraButton" type="button">Cancelar</button>
       <button id="takePhotoButton" type="button" disabled>Tirar foto</button>
+    </div>
+  </dialog>
+  <dialog class="photo-editor-dialog" id="photoEditorDialog" aria-labelledby="photoEditorTitle">
+    <div class="camera-header">
+      <div><span class="section-kicker">EDIÇÃO DA FOTO</span><h2 id="photoEditorTitle">Ajuste pela prateleira modelo</h2></div>
+      <button id="closeEditorButton" class="camera-close" type="button" aria-label="Fechar editor">×</button>
+    </div>
+    <p class="camera-instruction">Alinhe a foto à referência. Ajuste o zoom e a posição antes de usar.</p>
+    <div class="photo-editor-preview">
+      <img id="editorPhoto" alt="Prévia da foto selecionada">
+      <img class="editor-reference" src="prateleira.jpg" alt="Referência da prateleira principal">
+      <div class="editor-outline" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="editor-controls">
+      <label for="photoZoom">Zoom <output id="photoZoomValue">1.0×</output><input id="photoZoom" type="range" min="1" max="2" step="0.05" value="1"></label>
+      <label for="photoOffsetX">Posição horizontal<input id="photoOffsetX" type="range" min="-25" max="25" step="1" value="0"></label>
+      <label for="photoOffsetY">Posição vertical<input id="photoOffsetY" type="range" min="-25" max="25" step="1" value="0"></label>
+    </div>
+    <p class="camera-error" id="editorError" role="status"></p>
+    <div class="camera-actions">
+      <button id="cancelEditorButton" type="button">Cancelar</button>
+      <button id="usePhotoButton" type="button">Usar esta foto</button>
     </div>
   </dialog>
 </body>

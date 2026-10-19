@@ -22,6 +22,16 @@ const cameraDialog = document.getElementById("cameraDialog");
 const cameraVideo = document.getElementById("cameraVideo");
 const cameraError = document.getElementById("cameraError");
 const takePhotoButton = document.getElementById("takePhotoButton");
+const photoEditorDialog = document.getElementById("photoEditorDialog");
+const editorPhoto = document.getElementById("editorPhoto");
+const editorError = document.getElementById("editorError");
+const photoZoom = document.getElementById("photoZoom");
+const photoZoomValue = document.getElementById("photoZoomValue");
+const photoOffsetX = document.getElementById("photoOffsetX");
+const photoOffsetY = document.getElementById("photoOffsetY");
+let arquivoEmEdicao = null;
+let urlFotoEdicao = null;
+let fotoPronta = false;
 const saveShelfButton = document.getElementById("saveShelfButton");
 const shelfNote = document.getElementById("shelfNote");
 const CHAVE_INFO = "prateleira-informacoes-andares";
@@ -168,10 +178,10 @@ function fecharCamera() {
   if (cameraDialog.open) cameraDialog.close();
 }
 
-async function abrirCameraComGuia() {
+async function abrirCamera() {
   cameraError.textContent = "";
   if (!navigator.mediaDevices?.getUserMedia) {
-    shelfNote.textContent = "A câmera com guia precisa de uma conexão segura. Abrindo o seletor de fotos do celular.";
+    shelfNote.textContent = "A câmera da página exige uma conexão segura. Abrindo o seletor de fotos do celular.";
     shelfPhotoInput.click();
     return;
   }
@@ -192,7 +202,7 @@ async function abrirCameraComGuia() {
   }
 }
 
-function tirarFotoComGuia() {
+function tirarFoto() {
   if (!cameraVideo.videoWidth || !cameraVideo.videoHeight) return;
   takePhotoButton.disabled = true;
   const canvas = document.createElement("canvas");
@@ -206,13 +216,83 @@ function tirarFotoComGuia() {
       return;
     }
     const arquivo = new File([blob], "foto-prateleira.jpg", { type: "image/jpeg" });
-    const transferencia = new DataTransfer();
-    transferencia.items.add(arquivo);
-    shelfPhotoInput.files = transferencia.files;
-    shelfNote.textContent = "Foto capturada. Agora salve a prateleira.";
-    status.textContent = "Foto capturada com o contorno de enquadramento.";
     fecharCamera();
+    abrirEditorDaFoto(arquivo);
   }, "image/jpeg", 0.9);
+}
+
+function atualizarPreviaEditor() {
+  const zoom = Number(photoZoom.value);
+  photoZoomValue.value = `${zoom.toFixed(1)}×`;
+  editorPhoto.style.transform = `translate(${photoOffsetX.value}%, ${photoOffsetY.value}%) scale(${zoom})`;
+}
+
+function abrirEditorDaFoto(arquivo) {
+  arquivoEmEdicao = arquivo;
+  fotoPronta = false;
+  if (urlFotoEdicao) URL.revokeObjectURL(urlFotoEdicao);
+  urlFotoEdicao = URL.createObjectURL(arquivo);
+  editorPhoto.src = urlFotoEdicao;
+  photoZoom.value = "1";
+  photoOffsetX.value = "0";
+  photoOffsetY.value = "0";
+  editorError.textContent = "";
+  atualizarPreviaEditor();
+  photoEditorDialog.showModal();
+}
+
+function cancelarEdicaoDaFoto() {
+  fotoPronta = false;
+  arquivoEmEdicao = null;
+  shelfPhotoInput.value = "";
+  if (urlFotoEdicao) URL.revokeObjectURL(urlFotoEdicao);
+  urlFotoEdicao = null;
+  if (photoEditorDialog.open) photoEditorDialog.close();
+}
+
+async function confirmarEdicaoDaFoto() {
+  if (!arquivoEmEdicao) return;
+  const botao = document.getElementById("usePhotoButton");
+  botao.disabled = true;
+  editorError.textContent = "Preparando a foto…";
+  try {
+    const bitmap = await createImageBitmap(arquivoEmEdicao);
+    const largura = imagem.naturalWidth || 1152;
+    const altura = imagem.naturalHeight || 1536;
+    const escalaBase = Math.max(largura / bitmap.width, altura / bitmap.height);
+    const escala = escalaBase * Number(photoZoom.value);
+    const larguraFoto = bitmap.width * escala;
+    const alturaFoto = bitmap.height * escala;
+    const deslocamentoX = Number(photoOffsetX.value) / 100 * largura;
+    const deslocamentoY = Number(photoOffsetY.value) / 100 * altura;
+    const canvas = document.createElement("canvas");
+    canvas.width = largura;
+    canvas.height = altura;
+    const contexto = canvas.getContext("2d");
+    contexto.fillStyle = "#f4f6f5";
+    contexto.fillRect(0, 0, largura, altura);
+    contexto.drawImage(bitmap, (largura - larguraFoto) / 2 + deslocamentoX, (altura - alturaFoto) / 2 + deslocamentoY, larguraFoto, alturaFoto);
+    bitmap.close();
+
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((resultado) => resultado ? resolve(resultado) : reject(new Error("Não foi possível gerar a foto editada.")), "image/jpeg", 0.86);
+    });
+    const fotoEditada = new File([blob], "prateleira-editada.jpg", { type: "image/jpeg" });
+    const transferencia = new DataTransfer();
+    transferencia.items.add(fotoEditada);
+    shelfPhotoInput.files = transferencia.files;
+    fotoPronta = true;
+    shelfNote.textContent = "Foto ajustada. Agora preencha o nome e salve a prateleira.";
+    status.textContent = "Foto editada e pronta para salvar como prateleira.";
+    if (urlFotoEdicao) URL.revokeObjectURL(urlFotoEdicao);
+    urlFotoEdicao = null;
+    arquivoEmEdicao = null;
+    photoEditorDialog.close();
+  } catch (erro) {
+    editorError.textContent = erro.message || "Não foi possível editar esta foto.";
+  } finally {
+    botao.disabled = false;
+  }
 }
 
 function selecionarPrateleira(id) {
@@ -334,15 +414,28 @@ window.cadastrarPrateleira = cadastrarPrateleira;
 shelfSelect.addEventListener("change", () => selecionarPrateleira(shelfSelect.value));
 
 cameraButton.addEventListener("click", () => {
-  abrirCameraComGuia();
+  abrirCamera();
 });
 cameraVideo.addEventListener("loadedmetadata", () => { takePhotoButton.disabled = false; });
-takePhotoButton.addEventListener("click", tirarFotoComGuia);
+takePhotoButton.addEventListener("click", tirarFoto);
 document.getElementById("cancelCameraButton").addEventListener("click", fecharCamera);
 document.getElementById("closeCameraButton").addEventListener("click", fecharCamera);
 cameraDialog.addEventListener("cancel", (evento) => {
   evento.preventDefault();
   fecharCamera();
+});
+
+shelfPhotoInput.addEventListener("change", () => {
+  const arquivo = shelfPhotoInput.files?.[0];
+  if (arquivo) abrirEditorDaFoto(arquivo);
+});
+[photoZoom, photoOffsetX, photoOffsetY].forEach((controle) => controle.addEventListener("input", atualizarPreviaEditor));
+document.getElementById("usePhotoButton").addEventListener("click", confirmarEdicaoDaFoto);
+document.getElementById("cancelEditorButton").addEventListener("click", cancelarEdicaoDaFoto);
+document.getElementById("closeEditorButton").addEventListener("click", cancelarEdicaoDaFoto);
+photoEditorDialog.addEventListener("cancel", (evento) => {
+  evento.preventDefault();
+  cancelarEdicaoDaFoto();
 });
 
 shelfForm.addEventListener("submit", async (evento) => {
@@ -359,6 +452,11 @@ shelfForm.addEventListener("submit", async (evento) => {
     status.textContent = "O arquivo escolhido não é uma imagem válida.";
     return;
   }
+  if (!fotoPronta) {
+    shelfNote.textContent = "Edite e confirme a foto antes de salvar a prateleira.";
+    status.textContent = "A foto ainda precisa ser confirmada no editor.";
+    return;
+  }
 
   saveShelfButton.disabled = true;
   shelfNote.textContent = "Conferindo e salvando a foto neste navegador…";
@@ -367,6 +465,7 @@ shelfForm.addEventListener("submit", async (evento) => {
   try {
     await cadastrarPrateleira(nome, foto);
     shelfForm.reset();
+    fotoPronta = false;
     shelfForm.closest("details").open = false;
     shelfNote.textContent = "Foto salva localmente neste navegador.";
     status.textContent = `Prateleira “${nome}” salva e selecionada.`;
